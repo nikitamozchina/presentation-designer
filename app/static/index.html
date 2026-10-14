@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Дизайнер презентаций</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/fonts/inter.css">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- Верхняя панель -->
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <span class="app-mark" aria-hidden="true"></span>
+      <span class="app-name">Дизайнер презентаций</span>
+    </div>
+    <div class="toolbar-center">
+      <span class="project-title" id="projectTitle">—</span>
+      <span class="chip" id="guideChip" title="Гайдлайн проекта">
+        <svg class="i" viewBox="0 0 20 20"><path d="M4 3.5h9.5a2 2 0 0 1 2 2V16.5H6a2 2 0 0 1-2-2v-11Z"/><path d="M4 14.5a2 2 0 0 1 2-2h9.5"/></svg>
+        <span id="guideName">—</span>
+      </span>
+    </div>
+    <div class="toolbar-right">
+      <div class="agent" id="agentStatus" role="status" aria-live="polite">
+        <span class="agent-icon" id="agentIcon"></span><span id="agentText">Подключение…</span>
+      </div>
+      <button class="btn btn-primary" id="exportBtn" type="button">
+        <svg class="i" viewBox="0 0 20 20"><path d="M10 3v10M6 7l4-4 4 4"/><path d="M4 12v3.5A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5V12"/></svg>
+        Экспорт
+      </button>
+    </div>
+  </header>
+
+  <!-- Сайдбар: проекты и правила -->
+  <aside class="sidebar" id="sidebar">
+    <div class="side-scroll">
+    <div class="side-section">
+      <div class="side-label">Проекты</div>
+      <nav id="projectList" class="side-list"></nav>
+      <button class="side-add active" id="newProject" type="button">
+        <svg class="i" viewBox="0 0 20 20"><path d="M10 4v12M4 10h12"/></svg>Новый проект
+      </button>
+    </div>
+    <div class="side-section">
+      <div class="side-label">Гайдлайны</div>
+      <nav id="guideList" class="side-list"></nav>
+      <button class="side-add active" id="addGuide" type="button">
+        <svg class="i" viewBox="0 0 20 20"><path d="M10 4v12M4 10h12"/></svg>Новый гайдлайн
+      </button>
+    </div>
+    </div>
+    <div class="side-foot">
+      <button class="side-toggle" id="sideToggle" type="button" title="Скрыть боковую панель" aria-label="Скрыть боковую панель" aria-expanded="true">
+        <svg class="i" viewBox="0 0 20 20"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5"/><path d="M7.5 3.5v13"/><path class="chev" d="m13 8-2 2 2 2"/></svg>
+        <span>Скрыть панель</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Навигатор слайдов -->
+  <section class="navigator" aria-label="Слайды">
+    <div class="nav-head"><span>Слайды</span><span class="muted" id="slideCount"></span></div>
+    <ol class="thumbs" id="thumbs"></ol>
+  </section>
+
+  <!-- Сцена: превью -->
+  <main class="stage">
+    <div class="stage-bar">
+      <div class="stage-title"><span class="slide-no" id="slideNo"></span><span id="slideTitle"></span></div>
+      <button class="btn btn-plain" id="hideBtn" type="button"></button>
+    </div>
+    <div class="stage-empty" id="stageEmpty" hidden>
+      <svg class="i" viewBox="0 0 20 20"><rect x="3" y="4.5" width="14" height="11" rx="2"/><path d="M6.5 8h7M6.5 11h4.5"/></svg>
+      <b id="stageEmptyTitle"></b><p id="stageEmptyText"></p>
+    </div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <div class="canvas" id="canvas">
+        <iframe id="preview" sandbox="allow-same-origin" title="Предпросмотр слайда"></iframe>
+        <div class="hidden-veil" id="hiddenVeil">
+          <svg class="i" viewBox="0 0 20 20"><path d="M3 3l14 14"/><path d="M8.6 5.2A8.6 8.6 0 0 1 10 5c4.5 0 7.5 5 7.5 5a14 14 0 0 1-2.2 2.8M5.4 6.7A13.7 13.7 0 0 0 2.5 10s3 5 7.5 5a7.3 7.3 0 0 0 3.3-.8"/></svg>
+          Скрыт — не попадёт в экспорт
+        </div>
+      </div>
+    </div>
+    <p class="hint">Выдели текст, чтобы прокомментировать фрагмент</p>
+    <form class="composer" id="composer" autocomplete="off">
+      <textarea id="slideComment" rows="1" placeholder="Что изменить на слайде?"></textarea>
+      <button class="btn btn-tinted" type="submit" id="addSlideComment" disabled>Добавить</button>
+    </form>
+  </main>
+
+  <!-- Инспектор: черновики и задания -->
+  <aside class="inspector" id="inspector">
+    <div class="status-pane" id="statusPane" hidden></div>
+    <div class="segmented" role="tablist">
+      <span class="seg-thumb" aria-hidden="true"></span>
+      <button role="tab" class="seg on" data-tab="drafts" type="button">Комментарии <span class="badge" id="draftBadge"></span></button>
+      <button role="tab" class="seg" data-tab="tasks" type="button">Задания <span class="badge" id="taskBadge"></span></button>
+    </div>
+    <div class="pane on" id="pane-drafts">
+      <div id="drafts" class="list"></div>
+      <div class="pane-foot">
+        <button class="btn btn-primary btn-block" id="saveDrafts" type="button" disabled>Отправить агенту</button>
+      </div>
+    </div>
+    <div class="pane" id="pane-tasks">
+      <div id="tasks" class="list"></div>
+    </div>
+  </aside>
+</div>
+
+<!-- Поповер для выделенного фрагмента -->
+<div class="popover" id="selPopover" hidden>
+  <button class="pop-trigger" id="selTrigger" type="button">
+    <svg class="i" viewBox="0 0 20 20"><path d="M4 4.5h12v8H9l-3.5 3v-3H4z"/></svg>Комментировать
+  </button>
+  <form class="pop-form" id="selForm" hidden>
+    <blockquote id="selQuote"></blockquote>
+    <textarea id="selComment" rows="3" placeholder="Что изменить?"></textarea>
+    <div class="pop-actions">
+      <button class="btn btn-plain" type="button" id="selCancel">Отмена</button>
+      <button class="btn btn-primary" type="submit">Добавить</button>
+    </div>
+  </form>
+</div>
+
+<!-- Окно экспорта -->
+<div class="scrim" id="exportScrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+    <h2 id="exportTitle">Экспорт</h2>
+    <p class="sheet-sub" id="exportSub"></p>
+    <div class="formats" role="radiogroup">
+      <label class="format">
+        <input type="radio" name="fmt" value="pdf" checked>
+        <span class="format-card">
+          <svg class="fi" viewBox="0 0 32 32"><path d="M8 3.5h11l6.5 6.5v17A1.5 1.5 0 0 1 24 28.5H8A1.5 1.5 0 0 1 6.5 27V5A1.5 1.5 0 0 1 8 3.5Z"/><path d="M19 3.5V10h6.5"/><path d="M11 17h10M11 21h7"/></svg>
+          <b>PDF</b><small>Один файл</small>
+        </span>
+      </label>
+      <label class="format">
+        <input type="radio" name="fmt" value="jpeg">
+        <span class="format-card">
+          <svg class="fi" viewBox="0 0 32 32"><rect x="4.5" y="6.5" width="23" height="19" rx="2.5"/><circle cx="11.5" cy="13" r="2.2"/><path d="m4.8 22.5 7-6.5 5 4.5 3.5-3 6.9 6"/></svg>
+          <b>JPEG</b><small>1920×1080</small>
+        </span>
+      </label>
+      <label class="format" title="Правится в PowerPoint и Keynote">
+        <input type="radio" name="fmt" value="pptx">
+        <span class="format-card">
+          <svg class="fi" viewBox="0 0 32 32"><rect x="4.5" y="5.5" width="23" height="17" rx="2.5"/><path d="M16 22.5v5M11 27.5h10"/></svg>
+          <b>PPTX</b><small>Редактируемый</small>
+        </span>
+      </label>
+    </div>
+    <div class="dest">
+      <svg class="i" viewBox="0 0 20 20"><path d="M2.5 6A1.5 1.5 0 0 1 4 4.5h3.6l1.6 1.8H16A1.5 1.5 0 0 1 17.5 7.8v6.7A1.5 1.5 0 0 1 16 16H4a1.5 1.5 0 0 1-1.5-1.5Z"/></svg>
+      <span class="dest-label">Сохранить в</span><b id="destLabel"></b>
+      <span class="spacer"></span>
+      <button class="btn-link" type="button" id="destReset" hidden>По умолчанию</button>
+      <button class="btn btn-plain btn-s" type="button" id="destChange">Изменить…</button>
+    </div>
+    <div class="last" id="lastExports" hidden></div>
+    <div class="export-progress" id="exportProgress" hidden>
+      <div class="bar"><span id="exportBar"></span></div>
+      <p id="exportMsg"></p>
+    </div>
+    <div class="sheet-actions">
+      <span class="spacer"></span>
+      <button class="btn btn-plain" type="button" id="exportClose">Закрыть</button>
+      <button class="btn btn-primary" type="button" id="exportGo">Экспортировать</button>
+    </div>
+  </div>
+</div>
+
+<!-- Новый гайдлайн -->
+<div class="scrim" id="guideScrim" hidden>
+  <form class="sheet form-sheet" role="dialog" aria-modal="true" aria-labelledby="guideTitle" id="guideForm" autocomplete="off">
+    <h2 id="guideTitle">Новый гайдлайн</h2>
+    <p class="sheet-sub">Агент соберёт правила из шрифтов, презентаций и брендбуков.</p>
+    <label class="field">
+      <span class="field-label">Название</span>
+      <input id="guideNameInput" type="text" maxlength="80" placeholder="Корпоративный 2026" required>
+    </label>
+    <div class="field">
+      <span class="field-label">Папка с файлами</span>
+      <div class="picker">
+        <span class="picker-value" id="guideFolder">Не выбрана</span>
+        <button class="btn btn-plain btn-s" type="button" id="guidePick">Выбрать папку…</button>
+      </div>
+      <span class="field-hint">Оригиналы не изменятся.</span>
+    </div>
+    <label class="toggle-row">
+      <span class="toggle-text"><b>Сделать эталонные слайды</b><small>10 образцов: по ним видно, верно ли понят гайд.</small></span>
+      <input type="checkbox" class="switch" id="guideExamples" checked>
+    </label>
+    <p class="form-error" id="guideError" hidden></p>
+    <div class="sheet-actions">
+      <span class="spacer"></span>
+      <button class="btn btn-plain" type="button" id="guideCancel">Отмена</button>
+      <button class="btn btn-primary" type="submit" id="guideSave">Создать</button>
+    </div>
+  </form>
+</div>
+
+<!-- Новый проект -->
+<div class="scrim" id="projectScrim" hidden>
+  <form class="sheet form-sheet" role="dialog" aria-modal="true" aria-labelledby="projectFormTitle" id="projectForm" autocomplete="off">
+    <h2 id="projectFormTitle">Новый проект</h2>
+    <p class="sheet-sub">Агент задаст вопросы в чате, согласует структуру и сделает слайды.</p>
+    <div class="field">
+      <span class="field-label">Задача</span>
+      <div class="select" id="pMode"></div>
+    </div>
+    <div class="field" id="pSourceField" hidden>
+      <span class="field-label">Исходная презентация</span>
+      <div class="seg-mini" role="radiogroup" id="pSourceType">
+        <button type="button" data-type="project" class="on">Проект</button>
+        <button type="button" data-type="file">Файл</button>
+      </div>
+      <div class="select" id="pSourceProject"></div>
+      <div class="picker" id="pSourceFileRow" hidden>
+        <span class="picker-value" id="pSourceFile">Не выбран</span>
+        <button class="btn btn-plain btn-s" type="button" id="pSourcePick">Выбрать файл…</button>
+      </div>
+      <span class="field-hint" id="pSourceHint"></span>
+    </div>
+    <div class="field">
+      <span class="field-label">Гайдлайн</span>
+      <div class="select" id="pGuide"></div>
+    </div>
+    <label class="field">
+      <span class="field-label">Тема</span>
+      <input id="pTopic" type="text" maxlength="120" placeholder="Итоги кампаний за 3 квартал">
+      <span class="field-hint">Тема + дата = название проекта</span>
+    </label>
+    <label class="field">
+      <span class="field-label">Длительность, мин</span>
+      <input id="pDuration" type="number" min="1" max="600" placeholder="Необязательно">
+      <span class="field-hint" id="pDurationHint">≈ 1 слайд на минуту</span>
+    </label>
+    <div class="field">
+      <span class="field-label">Автор на титуле <span class="opt">необязательно</span></span>
+      <div class="row2">
+        <input id="pName" type="text" maxlength="120" placeholder="Имя и фамилия">
+        <input id="pPosition" type="text" maxlength="200" placeholder="Должность">
+      </div>
+      <div class="presets" id="pPresets"></div>
+    </div>
+    <div class="field">
+      <span class="field-label">Материалы <span class="opt">необязательно</span></span>
+      <ul class="refs" id="pRefs"></ul>
+      <div class="refs-actions">
+        <button class="btn btn-plain btn-s" type="button" id="pAddFiles">+ Файлы…</button>
+        <button class="btn btn-plain btn-s" type="button" id="pAddFolder">+ Папка…</button>
+      </div>
+      <span class="field-hint">Отчёты, таблицы, презентации, картинки. Оригиналы не изменятся.</span>
+    </div>
+    <label class="toggle-row">
+      <span class="toggle-text"><b>Проверить слайды</b><small>Агент найдёт и исправит вылезающий текст, мелкий шрифт, битые картинки. Дольше, но аккуратнее.</small></span>
+      <input type="checkbox" class="switch" id="pSelfCheck" checked>
+    </label>
+    <p class="form-error" id="pError" hidden></p>
+    <div class="sheet-actions">
+      <span class="spacer"></span>
+      <button class="btn btn-plain" type="button" id="pCancel">Отмена</button>
+      <button class="btn btn-primary" type="submit" id="pSave">Создать</button>
+    </div>
+  </form>
+</div>
+
+<!-- Подтверждение удаления -->
+<div class="scrim" id="deleteScrim" hidden>
+  <div class="sheet confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="deleteTitle" aria-describedby="deleteText">
+    <div class="confirm-icon" aria-hidden="true"><svg class="i" viewBox="0 0 20 20"><path d="M3.5 5h13M8 5V3.5h4V5M5.5 5l.8 10.2A1.5 1.5 0 0 0 7.8 16.5h4.4a1.5 1.5 0 0 0 1.5-1.3L14.5 5M8.5 8v5.5M11.5 8v5.5"/></svg></div>
+    <h2 id="deleteTitle"></h2>
+    <p class="sheet-sub" id="deleteText"></p>
+    <p class="form-error" id="deleteError" hidden></p>
+    <div class="sheet-actions">
+      <span class="spacer"></span>
+      <button class="btn btn-plain" type="button" id="deleteCancel">Отмена</button>
+      <button class="btn btn-danger" type="button" id="deleteGo">Удалить</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

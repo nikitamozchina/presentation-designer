@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit(./Проекты/**)",
+      "Edit(./Гайдлайны/**)",
+      "Bash(python3 app/tools/agent.py *)",
+      "Bash(python3 app/tools/extract.py *)",
+      "Bash(python3 app/tools/convert.py *)",
+      "Bash(python3 app/tools/check_slides.py *)"
+    ]
+  }
+}
