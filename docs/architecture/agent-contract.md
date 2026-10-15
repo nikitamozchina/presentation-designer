@@ -1,6 +1,6 @@
 ---
 title: "Контракт с ИИ-агентом"
-description: "Как итерации правок передаются Claude Code и как выводятся их статусы"
+description: "Как итерации правок передаются агенту (Claude Code или Codex) и как выводятся их статусы"
 category: "architecture"
 related_nodes:
   - "docs/modules/edits.md"
@@ -14,8 +14,8 @@ context_tags: ["agent", "claude-code", "edits", "statuses", "queue"]
 Здесь описан цикл **правок**. Заявки «собрать гайдлайн» и «создать презентацию» (`/presentations гайд|создать`, `agent.py task-*`) описаны в `docs/architecture/tasks.md`.
 
 ## Запуск обработки
-- Ручной, автозапуска нет: UI пишет «Задание vN ждёт агента» и предлагает скопировать `/presentations правки`.
-- `/presentations правки` — глобальный скилл (ставит `app/tools/install.py`), работает из любой папки по абсолютным путям и выполняет `.claude/commands/process-edits.md`.
+- Ручной, автозапуска нет: UI пишет «Задание vN ждёт агента» и предлагает скопировать команду правок установленного агента (`edit_commands` в `/api/state`): `/presentations правки` или `$slides правки`.
+- `/presentations правки` / `$slides правки` — глобальный скилл (ставит `app/tools/install.py`), работает из любой папки по абсолютным путям и выполняет `.claude/commands/process-edits.md`.
 - Внутри папки приложения — также `/process-edits` (project-команда, `.claude/settings.json`).
 - Разрешения: глобальные правила install.py (Read приложения, Edit `Проекты/**` и `Гайдлайны/**`, Bash agent.py/launch.py/extract.py/convert.py/check_slides.py) → `docs/tech-stack.md`.
 

@@ -6,10 +6,14 @@
 #     --images  → <имя>-slides/NNN.png — картинки слайдов (для контактных листов)
 #     --pptx    → <имя>.pptx (для .key: чтобы extract.py мог достать текст и тему)
 # Вывод — JSON. Keynote закрывается, только если его запустил этот скрипт; закрывается только свой документ.
-import json, re, shutil, subprocess, sys, time
+import json, plistlib, re, shutil, subprocess, sys, time
 from pathlib import Path
 
-KEYNOTE = Path("/Applications/Keynote.app")
+# Обычный Keynote (com.apple.iWork.Keynote) или Keynote Creator Studio из App Store (com.apple.Keynote).
+KEYNOTE_IDS = ("com.apple.Keynote", "com.apple.iWork.Keynote")
+KEYNOTE_ID = KEYNOTE_IDS[0]  # уточняется по найденному приложению в ensure_keynote()
+KEYNOTE_APPS = [d / n for d in (Path("/Applications"), Path.home() / "Applications")
+                for n in ("Keynote.app", "Keynote Creator Studio.app")]
 ERRORS = {
     "-600": "Keynote не запустился. Откройте Keynote вручную один раз (закройте окно приветствия) и повторите.",
     "-1743": "Нет разрешения управлять Keynote. Системные настройки → Конфиденциальность и безопасность → "
@@ -39,18 +43,44 @@ def keynote_running():
     return subprocess.run(["pgrep", "-x", "Keynote"], capture_output=True).returncode == 0
 
 
+def find_keynote():
+    """Путь к Keynote: известные места, иначе поиск Spotlight по идентификаторам приложения."""
+    for app in KEYNOTE_APPS:
+        if app.exists():
+            return app
+    query = " || ".join("kMDItemCFBundleIdentifier == '%s'" % i for i in KEYNOTE_IDS)
+    r = subprocess.run(["mdfind", query], capture_output=True, text=True)
+    found = [l for l in r.stdout.splitlines() if l.endswith(".app")]
+    return Path(found[0]) if found else None
+
+
+def bundle_id(app):
+    try:
+        with open(app / "Contents" / "Info.plist", "rb") as f:
+            return plistlib.load(f).get("CFBundleIdentifier") or KEYNOTE_ID
+    except (OSError, ValueError):
+        return KEYNOTE_ID
+
+
+def tell():
+    return 'tell application id "%s"' % KEYNOTE_ID
+
+
 def ensure_keynote():
     """Запустить без восстановления окон и дождаться, пока начнёт отвечать на скрипты."""
-    if not KEYNOTE.exists():
-        out({"ok": False, "error": "Keynote не установлен — он обязателен. Установите его из App Store (бесплатно)."}, 1)
+    global KEYNOTE_ID
+    app = find_keynote()
+    if not app:
+        out({"ok": False, "error": "Keynote не установлен — он обязателен. Поставь его из App Store (бесплатно)."}, 1)
+    KEYNOTE_ID = bundle_id(app)
     started = False
     if not keynote_running():
-        subprocess.run(["open", "-g", "-a", "Keynote", "--args", "-ApplePersistenceIgnoreState", "YES"])
+        subprocess.run(["open", "-g", "-a", str(app), "--args", "-ApplePersistenceIgnoreState", "YES"])
         started = True
     deadline = time.time() + 60
     last = ""
     while time.time() < deadline:
-        code, _, err = osa('tell application "Keynote" to get name', 10)
+        code, _, err = osa(tell() + ' to get name', 10)
         if code == 0:
             return started
         last = err
@@ -87,7 +117,7 @@ def convert(src, dst_dir, want_pdf, want_images, want_pptx):
         img_dir.mkdir()
         steps.append('export d to POSIX file "%s" as slide images with properties {image format:PNG, skipped slides:false}' % q(img_dir))
     script = '''with timeout of 600 seconds
-tell application "Keynote"
+%s
   set d to open POSIX file "%s"
   try
     %s
@@ -99,14 +129,14 @@ tell application "Keynote"
   close d saving no
   return n
 end tell
-end timeout''' % (q(src), "\n    ".join(steps))
+end timeout''' % (tell(), q(src), "\n    ".join(steps))
     t0 = time.time()
     try:
         code, stdout, err = osa(script, 660)
     except subprocess.TimeoutExpired:
         code, stdout, err = 1, "", "(-1712)"
     if started:  # закрываем Keynote, только если сами его открыли и в нём ничего не осталось
-        osa('tell application "Keynote" to if (count of documents) is 0 then quit', 30)
+        osa(tell() + ' to if (count of documents) is 0 then quit', 30)
     if code != 0:
         out({"ok": False, "error": explain(err)}, 1)
     result["slides"] = int(stdout) if stdout.isdigit() else None
@@ -131,7 +161,7 @@ if __name__ == "__main__":
     if a[:1] == ["--check"]:  # для install.py: Keynote есть и отвечает на скрипты (заодно запрос разрешения)
         started = ensure_keynote()
         if started:
-            osa('tell application "Keynote" to if (count of documents) is 0 then quit', 30)
+            osa(tell() + ' to if (count of documents) is 0 then quit', 30)
         out({"ok": True})
     if len(a) < 2:
         out({"ok": False, "error": "convert.py <файл> <папка> [--pdf] [--images] [--pptx]"}, 1)

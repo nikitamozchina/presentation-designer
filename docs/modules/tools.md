@@ -30,7 +30,8 @@ context_tags: ["extract", "keynote", "self-check", "contact-sheets", "tools"]
 ## convert.py — Keynote
 `python3 app/tools/convert.py <файл> <папка> [--pdf] [--images] [--pptx]`, `--check` — проверка.
 - Работает **только через Keynote**, он обязателен. PowerPoint неинтерактивно зависает на окне «Предоставить доступ».
-- Keynote запускается `open -g -a Keynote --args -ApplePersistenceIgnoreState YES`. Скрипт закрывает только свой документ и выходит из Keynote, только если сам его запустил.
+- Поиск Keynote: `Keynote.app` или `Keynote Creator Studio.app` в `/Applications` и `~/Applications`, иначе Spotlight по идентификатору. Идентификатор берётся из `Info.plist` найденного приложения: у старого Keynote `com.apple.iWork.Keynote`, у Creator Studio `com.apple.Keynote`. AppleScript обращается `tell application id "<он>"`.
+- Keynote запускается `open -g -a <путь> --args -ApplePersistenceIgnoreState YES`. Скрипт закрывает только свой документ и выходит из Keynote, только если сам его запустил.
 - Коды ошибок -600, -1743, -1712 переводятся в понятный текст. -1743 — нет разрешения «управлять Keynote», вернуть: `tccutil reset AppleEvents`.
 - Шаблон на 17 слайдов превращается в PDF и 17 картинок примерно за 9 с.
 - Если шрифта презентации нет в системе, Keynote молча подставляет замену и не зависает: проверено на шаблоне, где фирменный шрифт заменён несуществующим (17 слайдов, 12 с).
@@ -55,7 +56,7 @@ context_tags: ["extract", "keynote", "self-check", "contact-sheets", "tools"]
 Чего скрипт не видит (это смотрит агент глазами на контактном листе): повторы текста, баланс и выравнивание блоков, сходство с эталонами.
 
 ## Разработка
-- UI-проверка: `app/tests/ui/ui_check.py` — 22 проверки в настоящем Chrome на временной копии пакета (своя Корзина и порт, окна выбора подменены). Форма проекта, статусы заявки, генерация, экспорт в выбранную папку, удаление. Playwright — только для разработки:
+- UI-проверка: `app/tests/ui/ui_check.py` — 26 проверок в настоящем Chrome на временной копии пакета (своя Корзина и порт, окна выбора подменены). Форма проекта, статусы заявки, генерация, экспорт в выбранную папку, удаление. Playwright — только для разработки:
   `python3 -m venv .venv-dev && .venv-dev/bin/pip install playwright`, затем `.venv-dev/bin/python app/tests/ui/ui_check.py --pack <пакет> [--guide <гайд>] [--shots <папка>]`. Код выхода 1 при любой ошибке. Проверено: ловит регрессию «Изменить…» в экспорте.
 - В Playwright — только async API с таймаутами: синхронный зависает на sandbox-iframe.
 - PPTX (dev, нужны lxml / pillow / pymupdf в том же venv) → `docs/modules/pptx-converter.md`:

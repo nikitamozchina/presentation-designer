@@ -100,7 +100,7 @@ def view(kind, name):
     if lc["state"] == "working" and store.age_seconds(lc.get("updated_at")) > store.STALE_SECONDS:
         lc["state"] = "stalled"
         lc["message"] = "Агент не отвечает — отправь команду ещё раз, он продолжит"
-    lc["command"] = {"guide": "/presentations гайд", "project": "/presentations создать"}[kind]
+    lc["commands"] = store.agent_commands({"guide": "гайд", "project": "создать"}[kind])
     return lc
 
 

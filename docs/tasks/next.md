@@ -22,3 +22,4 @@ context_tags: ["backlog", "roadmap"]
 - [ ] Полное удаление слайда (отдельно от скрытия, с подтверждением) -> см. docs/modules/slides.md
 - [ ] Упаковка в .app без отдельной установки Python -> см. docs/tech-stack.md
 - [ ] Windows -> см. docs/tech-stack.md
+- [ ] convert.py: синтетический pptx (Deck из test_pptx, несуществующий шрифт) на холодном старте Keynote 14.4 падает «unmerge id … (-1700)» — open возвращает не документ; настоящий шаблон конвертируется. Было и до поддержки Creator Studio -> см. docs/modules/tools.md

@@ -1,13 +1,15 @@
 # Дизайнер презентаций — правила для агента
 
+Файл общий для Claude Code (`CLAUDE.md`) и Codex (`AGENTS.md` — ссылка на него). Команды: в Claude Code — `/presentations …`, в Codex — `$slides …`.
+
 Локальное веб-приложение для презентаций по корпоративным гайдлайнам. Приложение хранит проекты, гайдлайны, комментарии и экспорт. Агент (ты) собирает гайдлайны, создаёт презентации и применяет правки к HTML-слайдам. Документация: `docs/INDEX.md`.
 
 ## Процедуры
 | Запрос | Процедура |
 |---|---|
-| `/process-edits`, `/presentations правки`, «обработай правки» | `.claude/commands/process-edits.md` |
-| `/presentations создать`, «создай презентацию из приложения» | `.claude/commands/create-presentation.md` |
-| `/presentations гайд`, «собери гайдлайн» | `.claude/commands/build-guide.md` |
+| `/process-edits`, `/presentations правки`, `$slides правки`, «обработай правки» | `.claude/commands/process-edits.md` |
+| `/presentations создать`, `$slides создать`, «создай презентацию из приложения» | `.claude/commands/create-presentation.md` |
+| `/presentations гайд`, `$slides гайд`, «собери гайдлайн» | `.claude/commands/build-guide.md` |
 
 Состояние заявок (`request.json`, `lifecycle.json`) и интервью — только через `agent.py task-*`. Вопросы пользователю — строго по одному.
 

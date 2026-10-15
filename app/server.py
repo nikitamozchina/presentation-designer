@@ -295,7 +295,8 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/api/state":
                 return self._json({"ok": True, "projects": store.list_projects(), "project_states": project_lifecycles(),
                                    "guides": guides(), "agent": store.agent_status(),
-                                   "chrome": bool(exporter.find_chrome())})
+                                   "chrome": bool(exporter.find_chrome()),
+                                   "edit_commands": store.agent_commands("правки")})
             if path == "/api/presets":
                 return self._json({"ok": True, "presets": load_presets()})
             m = re.fullmatch(r"/api/guides/([^/]+)", path)
@@ -481,7 +482,7 @@ class Handler(BaseHTTPRequestHandler):
                "options": {"examples": bool(body.get("examples", True))}}
         gname = tasks.create("guide", name, req, with_date=False)
         threading.Thread(target=tasks.copy_sources, args=("guide", gname, log), daemon=True).start()
-        return self._json({"ok": True, "id": gname, "command": "/presentations гайд"})
+        return self._json({"ok": True, "id": gname, "commands": store.agent_commands("гайд")})
 
     def _create_project(self, body):
         mode = body.get("mode")
@@ -546,7 +547,7 @@ class Handler(BaseHTTPRequestHandler):
                 "guideline_set_id": guide, "slides": []})
         pname = tasks.create("project", topic, req, with_date=True, make_extra=extra)
         threading.Thread(target=tasks.copy_sources, args=("project", pname, log), daemon=True).start()
-        return self._json({"ok": True, "name": pname, "command": "/presentations создать"})
+        return self._json({"ok": True, "name": pname, "commands": store.agent_commands("создать")})
 
     def _delete(self, what, name):
         """Проект или гайд — в Корзину macOS. Пока над ним работают агент или экспорт — нельзя."""

@@ -89,7 +89,7 @@
   // ---------- загрузка ----------
   async function refreshState() {
     const st = await api('/api/state');
-    S.projects = st.projects; S.guides = st.guides; S.agent = st.agent; S.chrome = st.chrome; S.projectStates = st.project_states || {};
+    S.projects = st.projects; S.guides = st.guides; S.agent = st.agent; S.chrome = st.chrome; S.editCommands = st.edit_commands || ['/presentations правки']; S.projectStates = st.project_states || {};
     if (S.mode === 'guide' && !S.guides.some((g) => g.id === S.guide)) S.mode = 'project';
     if (S.mode === 'project' && (!S.project || !S.projects.includes(S.project))) selectProject(S.projects[0] || null, true);
     renderSidebar();
@@ -488,14 +488,7 @@
       });
       c.append(ul);
       if (t.status === 'queued' || t.status === 'stalled') {
-        const cmd = el('div', 'task-cmd');
-        cmd.append(document.createTextNode(t.status === 'queued'
-          ? 'Отправь в Claude Code:'
-          : 'Агент прервался. Отправь в Claude Code:'));
-        const code = el('code'); code.append(el('span', null, '/presentations правки'));
-        const cp = el('button', 'btn btn-plain'); cp.type = 'button'; cp.style.height = '24px'; cp.innerHTML = ICON.copy + 'Копировать';
-        cp.onclick = async () => { try { await navigator.clipboard.writeText('/presentations правки'); toast('Команда скопирована'); } catch (_) { toast('Не скопировалось — выдели вручную'); } };
-        code.append(cp); cmd.append(code); c.append(cmd);
+        c.append(cmdBlock(t.status === 'queued' ? 'Отправь агенту:' : 'Агент прервался. Отправь агенту:', S.editCommands));
       }
       box.append(c);
     });
@@ -533,13 +526,16 @@
     waiting_user: ['Нужен ответ в чате', ST.needs_input[1], 'waiting_user'], stalled: ['Агент не отвечает', ST.stalled[1], 'stalled'],
     ready: ['Готово', ST.completed[1], 'ready'], failed: ['Ошибка', ST.failed[1], 'failed'], cancelled: ['Отменено', ST.failed[1], 'cancelled'],
   };
-  function cmdBlock(text, cmd) {
+  function cmdBlock(text, cmds) {  // по строке на каждого установленного агента: /presentations … или $slides …
     const box = el('div', 'task-cmd'); box.append(document.createTextNode(text));
-    const code = el('code'); code.append(el('span', null, cmd));
-    const cp = el('button', 'btn btn-plain'); cp.type = 'button'; cp.style.height = '24px'; cp.innerHTML = ICON.copy;
-    cp.title = 'Копировать команду'; cp.setAttribute('aria-label', cp.title);
-    cp.onclick = async () => { try { await navigator.clipboard.writeText(cmd); toast('Команда скопирована'); } catch (_) { toast('Не скопировалось — выдели вручную'); } };
-    code.append(cp); box.append(code); return box;
+    (cmds || []).forEach((cmd) => {
+      const code = el('code'); code.append(el('span', null, cmd));
+      const cp = el('button', 'btn btn-plain'); cp.type = 'button'; cp.style.height = '24px'; cp.innerHTML = ICON.copy;
+      cp.title = 'Копировать команду'; cp.setAttribute('aria-label', cp.title);
+      cp.onclick = async () => { try { await navigator.clipboard.writeText(cmd); toast('Команда скопирована'); } catch (_) { toast('Не скопировалось — выдели вручную'); } };
+      code.append(cp); box.append(code);
+    });
+    return box;
   }
   function renderStatus() {
     const pane = $('#statusPane');
@@ -579,9 +575,9 @@
     order.forEach((k, i) => { const li = el('li', i < ci || lc.state === 'ready' ? 'done' : (i === ci ? 'now' : ''), names[k]); steps.append(li); });
     card.append(steps);
     pane.append(card);
-    if (lc.state === 'waiting_agent' && lc.sources_copied !== false) pane.append(cmdBlock('Отправь в Claude Code:', lc.command));
-    if (lc.state === 'stalled') pane.append(cmdBlock('Агент прервался. Отправь команду — продолжит с того же места:', lc.command));
-    if (lc.state === 'waiting_user') pane.append(cmdBlock('Ответь агенту в чате. Если чат закрыт, отправь команду — он повторит вопрос:', lc.command));
+    if (lc.state === 'waiting_agent' && lc.sources_copied !== false) pane.append(cmdBlock('Отправь агенту:', lc.commands));
+    if (lc.state === 'stalled') pane.append(cmdBlock('Агент прервался. Отправь команду — продолжит с того же места:', lc.commands));
+    if (lc.state === 'waiting_user') pane.append(cmdBlock('Ответь агенту в чате. Если чат закрыт, отправь команду — он повторит вопрос:', lc.commands));
     if (!['ready', 'failed', 'cancelled'].includes(lc.state)) {
       const acts = el('div', 'status-actions');
       const cancel = el('button', 'btn btn-plain btn-s', 'Отменить'); cancel.type = 'button';

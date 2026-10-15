@@ -16,8 +16,8 @@ context_tags: ["tasks", "lifecycle", "claim", "statuses", "agent"]
 - `project` — папка `Проекты/<имя>/`.
 
 Заявку создаёт приложение по форме. Выполняет её агент по процедуре:
-- `guide` — по `.claude/commands/build-guide.md`, команда `/presentations гайд`;
-- `project` — по `.claude/commands/create-presentation.md`, команда `/presentations создать`.
+- `guide` — по `.claude/commands/build-guide.md`, команда `/presentations гайд` (Codex — `$slides гайд`);
+- `project` — по `.claude/commands/create-presentation.md`, команда `/presentations создать` (Codex — `$slides создать`). Подсказку команды UI получает в `lifecycle.commands` — по установленным агентам.
 
 ## Файлы в папке заявки
 | Файл | Пишет | Содержимое |

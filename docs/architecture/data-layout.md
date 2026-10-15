@@ -29,7 +29,7 @@ context_tags: ["data", "filesystem", "json"]
   brief/                  interview.md (журнал вопросов), brief.md
 Гайдлайны/<имя>/          → modules/guides.md (guide.json, guide.md, styles.css, fonts/, assets/, examples/)
 .state/                   server.json, server.log, server.out, picks.json (токены окон выбора, 24 ч)
-~/.config/presentation-designer/  config.json (установка), presets.json (авторы)
+~/.config/presentation-designer/  presets.json (авторы)
 ```
 
 ## project.json

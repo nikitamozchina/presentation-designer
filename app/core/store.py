@@ -9,6 +9,13 @@ EXPORTS = ROOT / "Экспорт"
 GUIDES = ROOT / "Гайдлайны"
 STATE = ROOT / ".state"
 STALE_SECONDS = 15 * 60  # без heartbeat дольше этого агент считается «не отвечает»
+AGENT_CMD = {"claude": "/presentations", "codex": "$slides"}  # команда скилла у каждого агента
+
+
+def agent_commands(action):
+    """Команды для установленных агентов (.state/install.json пишет install.py); без записи — Claude Code."""
+    agents = (read_json(STATE / "install.json") or {}).get("agents") or {}
+    return ["%s %s" % (AGENT_CMD[a], action) for a in AGENT_CMD if a in agents] or ["%s %s" % (AGENT_CMD["claude"], action)]
 
 FINAL = ("completed", "completed_with_warnings", "needs_input", "failed", "cancelled")
 ITEM_STATUSES = ("pending", "done", "partial", "needs_input", "unsupported", "failed")

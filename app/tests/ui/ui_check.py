@@ -88,6 +88,8 @@ async def main():
         req = json.loads((ROOT / "Проекты" / name / "request.json").read_text(encoding="utf-8"))
         check(req["references"] == ["Отчёт Q3.docx", "Цифры.xlsx", "Папка отчётов"], "в заявке только оставленные файлы")
         check(await pg.evaluate("document.getElementById('app').classList.contains('readonly')"), "собираемый проект только для просмотра")
+        await pg.wait_for_selector("#statusPane .task-cmd code", timeout=10000)
+        check(await pg.inner_text("#statusPane .task-cmd code span") == "/presentations создать", "команда агента в карточке (без установки — Claude Code)")
 
         # --- статусы заявки, которые выставляет агент ---
         agent("task-claim", "project")
